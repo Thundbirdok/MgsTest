@@ -703,7 +703,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.55906206, b: 0, a: 1}
+  m_Color: {r: 1, g: 0.39215687, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3309,24 +3309,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   vlcPlayer: {fileID: 1026113751}
-  screen: {fileID: 946796199267792634}
   screenAspectRatioFitter: {fileID: 946796199267792635}
-  seekBar: {fileID: 0}
-  playButton: {fileID: 0}
-  pauseButton: {fileID: 0}
-  stopButton: {fileID: 0}
-  pathButton: {fileID: 0}
-  tracksButton: {fileID: 0}
-  volumeButton: {fileID: 0}
-  pathGroup: {fileID: 0}
-  pathInputField: {fileID: 0}
-  openButton: {fileID: 0}
-  tracksButtonsGroup: {fileID: 0}
+  playButton: {fileID: 214727522}
   volumeBar: {fileID: 946796198193230543}
-  trackButtonPrefab: {fileID: 8928333183462758708, guid: 34337d4d3b7a75749abe73fea2ac840a, type: 3}
-  trackLabelPrefab: {fileID: 8928333183462758708, guid: 807c738c080f28841b91df5dade9fe2d, type: 3}
-  unselectedButtonColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedButtonColor: {r: 1, g: 0.3921569, b: 0, a: 1}
   maxVolume: 100
 --- !u!114 &1026113751
 MonoBehaviour:
@@ -3346,8 +3331,8 @@ MonoBehaviour:
   path: rtsp://192.168.100.2:8554/
   flipTextureX: 1
   flipTextureY: 1
-  automaticallyFlipOnAndroid: 1
-  playOnAwake: 1
+  automaticallyFlipOnAndroid: 0
+  playOnAwake: 0
   logToConsole: 0
 --- !u!1 &1048464080
 GameObject:
@@ -3604,7 +3589,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 724319358}
   m_HandleRect: {fileID: 724319357}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -5060,8 +5045,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 331804398}
   m_HandleRect: {fileID: 331804397}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 0.9999998
+  m_Value: 1
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -6654,19 +6639,19 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1843917871}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1477558345}
   m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -15, y: -15}
+  m_AnchoredPosition: {x: -59.999817, y: -60.00003}
   m_SizeDelta: {x: 90, y: 90}
-  m_Pivot: {x: 1, y: 1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1843917873
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6731,8 +6716,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: b190fe6850fba4b4da2d3688bff6ba66, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
