@@ -2,12 +2,7 @@ using UnityEngine;
 
 namespace Ui
 {
-    using DG.Tweening;
-    using System.Globalization;
-    using DG.Tweening.Core;
-    using DG.Tweening.Plugins.Options;
     using ServerInteractions;
-    using TMPro;
     using UnityEngine.UI;
 
     public class MainScreen : MonoBehaviour
@@ -22,7 +17,7 @@ namespace Ui
         private Toggle randomStatus;
 
         [SerializeField]
-        private TextMeshProUGUI odometer;
+        private OdometerView odometer;
 
         [SerializeField]
         private NoConnectionPopup noConnectionPopup;
@@ -32,47 +27,33 @@ namespace Ui
 
         [SerializeField]
         private Menu menu;
-        
-        [SerializeField]
-        private float odometerTextTweenDuration = 0.1f;
 
-        private TweenerCore<float, float, FloatOptions> _odometerTween;
-        
-        private float _odometerShowedValue;
-        private float OdometerShowedValue
+        private void Awake()
         {
-            get
-            {
-                return _odometerShowedValue;
-            }
-
-            set
-            {
-                _odometerShowedValue = value;
-                odometer.text = _odometerShowedValue.ToString(CultureInfo.CurrentCulture);
-            }
+            odometer.Construct(serverInteractionController);
         }
-        
+
         private void OnEnable()
         {
             connection.isOn = serverInteractionController.IsConnected;
             randomStatus.isOn = serverInteractionController.RandomStatus;
-            OdometerShowedValue = serverInteractionController.OdometerValue;
+
+            odometer.Enable();
             
             serverInteractionController.OnConnectionStatusChanged += ConnectionStatusChanged;
             serverInteractionController.OnRandomStatusChanged += RandomStatusChanged;
-            serverInteractionController.OnOdometerValueChanged += OdometerValueChanged;
-            
+
             menuButton.onClick.AddListener(menu.Open);
             menu.Close();
         }
 
         private void OnDisable()
         {
+            odometer.Disable();
+            
             serverInteractionController.OnConnectionStatusChanged -= ConnectionStatusChanged;
             serverInteractionController.OnRandomStatusChanged -= RandomStatusChanged;
-            serverInteractionController.OnOdometerValueChanged -= OdometerValueChanged;
-            
+
             menuButton.onClick.RemoveListener(menu.Open);
         }
 
@@ -86,16 +67,6 @@ namespace Ui
             }
         }
 
-        private void OdometerValueChanged()
-        {
-            _odometerTween?.Kill();
-            
-            _odometerTween = DOTween.To(() => OdometerShowedValue, x => OdometerShowedValue = x, serverInteractionController.OdometerValue, odometerTextTweenDuration);
-        }
-
-        private void RandomStatusChanged()
-        {
-            randomStatus.isOn = serverInteractionController.RandomStatus;
-        }
+        private void RandomStatusChanged() => randomStatus.isOn = serverInteractionController.RandomStatus;
     }
 }

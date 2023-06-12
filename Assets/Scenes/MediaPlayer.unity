@@ -3096,11 +3096,12 @@ MonoBehaviour:
   serverInteractionController: {fileID: 1841407715}
   connection: {fileID: 1998430195}
   randomStatus: {fileID: 1376184208}
-  odometer: {fileID: 281185395}
+  odometer:
+    odometer: {fileID: 281185395}
+    odometerTextTweenDuration: 1
   noConnectionPopup: {fileID: 515383170}
   menuButton: {fileID: 787229063}
   menu: {fileID: 1477558346}
-  odometerTextTweenDuration: 1
 --- !u!1 &852896493
 GameObject:
   m_ObjectHideFlags: 0

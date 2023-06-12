@@ -257,7 +257,7 @@ namespace ServerInteractions
                     
                     RandomStatus = response.status;
 
-                    if (RandomStatus)
+                    if (response.odometer != 0)
                     {
                         OdometerValue = response.odometer;
                     }
