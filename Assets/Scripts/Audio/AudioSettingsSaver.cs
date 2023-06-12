@@ -15,18 +15,15 @@ namespace Audio
         private const string SAVE_FILE_NAME = "AudioSettings.json";
 
         private string _filePath;
-
-        private void Awake()
-        {
-            _filePath = Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);
-        }
-
+        
         private void OnEnable() => Load();
 
         private void OnDisable() => Save();
 
         private void Load()
         {
+            SetPath();
+
             var saves = GetSettingsSaves();
 
             SetupSettings(saves);
@@ -34,6 +31,8 @@ namespace Audio
 
         private void Save()
         {
+            SetPath();
+            
             var saves = GetSaves();
             
             WriteSettingsSaves(saves);
@@ -94,6 +93,14 @@ namespace Audio
                 setting => setting.GetJson()
             )
             .ToList();
+        }
+
+        private void SetPath()
+        {
+            if (string.IsNullOrEmpty(_filePath))
+            {
+                _filePath = Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);
+            }
         }
     }
 }

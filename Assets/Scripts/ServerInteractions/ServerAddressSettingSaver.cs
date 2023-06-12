@@ -20,7 +20,7 @@ namespace ServerInteractions
 
         private void Load()
         {
-            _filePath = Path.Combine(Application.streamingAssetsPath, SAVE_FILE_NAME);
+            SetPath();
 
             var save = GetSettingsSaves();
 
@@ -29,6 +29,8 @@ namespace ServerInteractions
 
         private void Save()
         {
+            SetPath();
+            
             var save = GetSave();
             
             WriteSettingsSaves(save);
@@ -84,6 +86,14 @@ namespace ServerInteractions
                 address = setting.Address,
                 port = setting.Port
             };
+        }
+
+        private void SetPath()
+        {
+            if (string.IsNullOrEmpty(_filePath))
+            {
+                _filePath = Path.Combine(Application.streamingAssetsPath, SAVE_FILE_NAME);
+            }
         }
     }
 }
