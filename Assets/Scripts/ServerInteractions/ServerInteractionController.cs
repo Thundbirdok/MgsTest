@@ -11,6 +11,7 @@ namespace ServerInteractions
         public event Action OnOdometerValueChanged;
         public event Action OnRandomStatusChanged;
 
+        [NonSerialized]
         private bool _isConnected;
         public bool IsConnected
         {
@@ -32,6 +33,7 @@ namespace ServerInteractions
             }
         }
 
+        [NonSerialized]
         private float _odometerValue;
 
         public float OdometerValue
@@ -49,6 +51,7 @@ namespace ServerInteractions
             }
         }
         
+        [NonSerialized]
         private bool _randomStatus;
         public bool RandomStatus
         {
@@ -69,10 +72,10 @@ namespace ServerInteractions
                 OnRandomStatusChanged?.Invoke();
             }
         }
-        
-        [SerializeField]
-        private string uri = "ws://185.246.65.199:9090/ws";
 
+        [SerializeField]
+        private ServerAddressSetting serverAddress;
+        
         [SerializeField]
         private int maxReconnectionIterations = 4;
 
@@ -89,34 +92,46 @@ namespace ServerInteractions
         private const string RESPONSE_GET_RANDOM_STATUS_OPERATION_NAME = "randomStatus";
 
         private const string BROADCAST_ODOMETER_OPERATION_NAME = "odometer_val";
-
+        
+        [NonSerialized]
         private WebSocket _websocket;
 
+        [NonSerialized]
         private bool _isInternetReachable;
+        
+        [NonSerialized]
         private bool _isConnecting;
+        
+        [NonSerialized]
         private bool _isClosing;
+        
+        [NonSerialized]
         private bool _isNoConnectionFired;
 
+        [NonSerialized]
         private int _reconnectionIteration;
 
+        [NonSerialized]
         private float _timer;
 
-        private async void Start() => await Initialize();
-
-        private async void OnDestroy() => await Dispose();
-
-        private void Update()
+        private void Start()
         {
-            if (_isInternetReachable == false)
-            {
-                if (Application.internetReachability != NetworkReachability.NotReachable)
-                {
-                    _isInternetReachable = true;
+            serverAddress.OnUrlUpdate += Initialize;
 
-                    _ = Connect();
-                }
-            }
+            Initialize();
+        }
+
+        private async void OnDestroy()
+        {
+            serverAddress.OnUrlUpdate -= Initialize;
             
+            await Dispose();
+        }
+
+        private async void Update()
+        {
+            await CheckConnection();
+
             _timer += Time.deltaTime;
 
             if (_timer < messageDispatchDelay)
@@ -125,26 +140,61 @@ namespace ServerInteractions
             }
             
             _timer = 0;
-            
-            if (_websocket.State == WebSocketState.Open)
+
+            _websocket?.DispatchMessageQueue();
+        }
+
+        private async Task CheckConnection()
+        {
+            if (_isConnecting || _isClosing || _isConnected)
             {
-                _websocket.DispatchMessageQueue();
+                return;
+            }
+
+            if (_isInternetReachable)
+            {
+                return;
+            }
+
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                return;
+            }
+
+            _isInternetReachable = true;
+
+            if (_websocket != null)
+            {
+                await Connect();
             }
         }
-        
-        private async Task Initialize()
+
+        private void Initialize()
         {
-            _websocket = new WebSocket(uri);
+            _ = InitializeAndWaitForCompletion();
+        }
+        
+        private async Task InitializeAndWaitForCompletion()
+        {
+            if (_websocket != null)
+            {
+                _websocket.DispatchMessageQueue();
+                
+                await Dispose();
+            }
+        
+            _websocket = new WebSocket(serverAddress.Url);
 
             _websocket.OnOpen += OnWebsocketOpen;
             _websocket.OnClose += OnWebsocketClose;
             _websocket.OnMessage += OnWebsocketMessage;
             _websocket.OnError += OnWebsocketError;
 
-            if (Application.internetReachability == NetworkReachability.NotReachable)
+            _isInternetReachable =
+                Application.internetReachability != NetworkReachability.NotReachable;
+            
+            if (_isInternetReachable == false)
             {
-                _isInternetReachable = false;
-                
                 return;
             }
             
@@ -257,7 +307,7 @@ namespace ServerInteractions
             HandleConnectionLoss();
         }
 
-        private static void OnWebsocketError(string errorMsg)
+        private void OnWebsocketError(string errorMsg)
         {
             Debug.LogError("WebSocket error: " + errorMsg);
         }

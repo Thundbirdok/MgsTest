@@ -12,14 +12,19 @@ namespace Audio
         
         private void OnEnable()
         {
-            SetVolume();
-            
+            if (audioSetting.IsInitialized)
+            {
+                SetVolume();
+            }
+
             audioSetting.OnVolumeChanged += SetVolume;
+            audioSetting.OnInitialized += SetVolume;
         }
 
         private void OnDisable()
         {
             audioSetting.OnVolumeChanged -= SetVolume;
+            audioSetting.OnInitialized -= SetVolume;
         }
 
         private void SetVolume()

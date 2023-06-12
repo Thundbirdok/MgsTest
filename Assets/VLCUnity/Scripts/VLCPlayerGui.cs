@@ -10,7 +10,7 @@ namespace VLCUnity.Demos.Scripts
 	/// On Android, make sure you require Internet access in your manifest to be able to access internet-hosted videos in these demo scenes.
 	public class VlcPlayerGui : MonoBehaviour
 	{
-		public VLCPlayerExample vlcPlayer;
+		public VLCPlayer vlcPlayer;
 	
 		//GUI Elements
 		public AspectRatioFitter screenAspectRatioFitter;

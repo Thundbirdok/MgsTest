@@ -3,6 +3,8 @@ using System;
 using LibVLCSharp;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using Audio;
+using ServerInteractions;
 
 ///This is a basic implementation of a media player using VLC for Unity using LibVLCSharp
 ///It exposes some basic playback controls, you may wish to add more of these
@@ -14,21 +16,26 @@ using System.Collections.Generic;
 ///LibVLC parameters: https://wiki.videolan.org/VLC_command-line_help/
 ///Report a bug: https://code.videolan.org/videolan/vlc-unity/-/issues
 
-public class VLCPlayerExample : MonoBehaviour
+public class VLCPlayer : MonoBehaviour
 {
 	public static LibVLC libVLC; //The LibVLC class is mainly used for making MediaPlayer and Media objects. You should only have one LibVLC instance.
 	public MediaPlayer mediaPlayer; //MediaPlayer is the main class we use to interact with VLC
 
 	//Screens
-	public Renderer screen; //Assign a mesh to render on a 3d object
 	public RawImage canvasScreen; //Assign a Canvas RawImage to render on a GUI object
 
 	Texture2D _vlcTexture = null; //This is the texture libVLC writes to directly. It's private.
 	public RenderTexture texture = null; //We copy it into this texture which we actually use in unity.
 
 
-	public string path = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; //Can be a web path or a local path
+	public string path => videoStreamAddressSetting.Address; //Can be a web path or a local path
+	
+	[SerializeField]
+	private VideoStreamAddressSetting videoStreamAddressSetting;
 
+	[SerializeField]
+	private AudioSetting[] mutedOnPlayAudioSettings;
+	
 	public bool flipTextureX = false; //No particular reason you'd need this but it is sometimes useful
 	public bool flipTextureY = true; //Set to false on Android, to true on Windows
 
@@ -38,6 +45,8 @@ public class VLCPlayerExample : MonoBehaviour
 
 	public bool logToConsole = false; //Log function calls and LibVLC logs to Unity console
 
+	private bool _isStreamStarted;
+	
 	//Unity Awake, OnDestroy, and Update functions
 	#region unity
 	void Awake()
@@ -45,10 +54,7 @@ public class VLCPlayerExample : MonoBehaviour
 		//Setup LibVLC
 		if (libVLC == null)
 			CreateLibVLC();
-
-		//Setup Screen
-		if (screen == null)
-			screen = GetComponent<Renderer>();
+		
 		if (canvasScreen == null)
 			canvasScreen = GetComponent<RawImage>();
 
@@ -59,14 +65,19 @@ public class VLCPlayerExample : MonoBehaviour
 		//Setup Media Player
 		CreateMediaPlayer();
 
-		//Play On Start
-		if (playOnAwake)
-			Open();
+		videoStreamAddressSetting.OnAddressChanged += CheckIsNeedToPlay;
+		
+		if (videoStreamAddressSetting.IsInitialized)
+		{
+			CheckIsNeedToPlay();
+		}
 	}
 
 	void OnDestroy()
 	{
-		//Dispose of mediaPlayer, or it will stay in nemory and keep playing audio
+		videoStreamAddressSetting.OnAddressChanged -= CheckIsNeedToPlay;
+		
+		//Dispose of mediaPlayer, or it will stay in memory and keep playing audio
 		DestroyMediaPlayer();
 	}
 
@@ -102,13 +113,22 @@ public class VLCPlayerExample : MonoBehaviour
 
 	//Public functions that expose VLC MediaPlayer functions in a Unity-friendly way. You may want to add more of these.
 	#region vlc
-	public void Open(string path)
-	{
-		Log("VLCPlayerExample Open " + path);
-		this.path = path;
-		Open();
-	}
 
+	private void CheckIsNeedToPlay()
+	{
+		if (_isStreamStarted)
+		{
+			Open();
+			
+			return;
+		}
+
+		if (playOnAwake)
+		{
+			Open();
+		}
+	}
+	
 	public void Open()
 	{
 		Log("VLCPlayerExample Open");
@@ -117,6 +137,7 @@ public class VLCPlayerExample : MonoBehaviour
 
 		var trimmedPath = path.Trim(new char[]{'"'});//Windows likes to copy paths with quotes but Uri does not like to open them
 		mediaPlayer.Media = new Media(new Uri(trimmedPath));
+		
 		Play();
 	}
 
@@ -124,34 +145,14 @@ public class VLCPlayerExample : MonoBehaviour
 	{
 		Log("VLCPlayerExample Play");
 
+		foreach (var setting in mutedOnPlayAudioSettings)
+		{
+			setting.IsOn = false;
+		}
+
+		_isStreamStarted = true;
+		
 		mediaPlayer.Play();
-	}
-
-	public void Pause()
-	{
-		Log("VLCPlayerExample Pause");
-		mediaPlayer.Pause();
-	}
-
-	public void Stop()
-	{
-		Log("VLCPlayerExample Stop");
-		mediaPlayer?.Stop();
-
-		_vlcTexture = null;
-		texture = null;
-	}
-
-	public void Seek(long timeDelta)
-	{
-		Log("VLCPlayerExample Seek " + timeDelta);
-		mediaPlayer.SetTime(mediaPlayer.Time + timeDelta);
-	}
-
-	public void SetTime(long time)
-	{
-		Log("VLCPlayerExample SetTime " + time);
-		mediaPlayer.SetTime(time);
 	}
 
 	public void SetVolume(int volume = 100)
@@ -180,50 +181,6 @@ public class VLCPlayerExample : MonoBehaviour
 		}
 	}
 
-	public long Duration
-	{
-		get
-		{
-			if (mediaPlayer == null || mediaPlayer.Media == null)
-				return 0;
-			return mediaPlayer.Media.Duration;
-		}
-	}
-
-	public long Time
-	{
-		get
-		{
-			if (mediaPlayer == null)
-				return 0;
-			return mediaPlayer.Time;
-		}
-	}
-
-	public List<MediaTrack> Tracks(TrackType type)
-	{
-		Log("VLCPlayerExample Tracks " + type);
-		return ConvertMediaTrackList(mediaPlayer?.Tracks(type));
-	}
-
-	public MediaTrack SelectedTrack(TrackType type)
-	{
-		Log("VLCPlayerExample SelectedTrack " + type);
-		return mediaPlayer?.SelectedTrack(type);
-	}
-
-	public void Select(MediaTrack track)
-	{
-		Log("VLCPlayerExample Select " + track.Name);
-		mediaPlayer?.Select(track);
-	}
-
-	public void Unselect(TrackType type)
-	{
-		Log("VLCPlayerExample Unselect " + type);
-		mediaPlayer?.Unselect(type);
-	}
-
 	//This returns the video orientation for the currently playing video, if there is one
 	public VideoOrientation? GetVideoOrientation()
 	{
@@ -231,7 +188,7 @@ public class VLCPlayerExample : MonoBehaviour
 
 		if (tracks == null || tracks.Count == 0)
 			return null;
-
+		
 		var orientation = tracks[0]?.Data.Video.Orientation; //At the moment we're assuming the track we're playing is the first track
 
 		return orientation;
@@ -312,9 +269,7 @@ public class VLCPlayerExample : MonoBehaviour
 
 			_vlcTexture = Texture2D.CreateExternalTexture((int)px, (int)py, TextureFormat.RGBA32, false, true, texptr); //Make a texture of the proper size for the video to output to
 			texture = new RenderTexture(_vlcTexture.width, _vlcTexture.height, 0, RenderTextureFormat.ARGB32); //Make a renderTexture the same size as vlctex
-
-			if (screen != null)
-				screen.material.mainTexture = texture;
+			
 			if (canvasScreen != null)
 				canvasScreen.texture = texture;
 		}

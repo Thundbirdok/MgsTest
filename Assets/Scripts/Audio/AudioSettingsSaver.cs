@@ -9,7 +9,7 @@ namespace Audio
     public class AudioSettingsSaver : MonoBehaviour
     {
         [SerializeField]
-        public List<AudioSetting> settings;
+        private List<AudioSetting> settings;
 
         private const string SAVE_FILE_NAME = "AudioSettings.json";
 
