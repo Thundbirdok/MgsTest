@@ -31,12 +31,31 @@ namespace Audio
         }
 
         [NonSerialized]
+        private bool _isMuted;
+
+        public bool IsMuted
+        {
+            get
+            {
+                return _isMuted;
+            }
+
+            set
+            {
+                _isMuted = value;
+                
+                OnIsOnChanged?.Invoke();
+                OnVolumeChanged?.Invoke();
+            }
+        }
+
+        [NonSerialized]
         private bool _isOn;
         public bool IsOn
         {
             get
             {
-                return _isOn;
+                return !IsMuted && _isOn;
             }
 
             set
@@ -48,9 +67,9 @@ namespace Audio
 
                 _isOn = value;
 
-                if (_isOn)
+                if (IsOn)
                 {
-                    Volume = Value > 0 ? Value : defaultValue;
+                    Volume = _value > 0 ? _value : defaultValue;
                 }
                 else
                 {
@@ -60,8 +79,8 @@ namespace Audio
                 OnIsOnChanged?.Invoke();
             }
         }
-        
-        public float Value { get; private set; }
+
+        private float _value;
         
         [NonSerialized]
         private float _volume;
@@ -69,7 +88,7 @@ namespace Audio
         {
             get
             {
-                return _volume;
+                return IsOn ? _volume : 0;
             }
 
             set
@@ -78,7 +97,7 @@ namespace Audio
 
                 if (IsOn)
                 {
-                    Value = value;
+                    _value = value;
                 }
 
                 OnVolumeChanged?.Invoke();
@@ -96,7 +115,7 @@ namespace Audio
 
         public void Setup(AudioSettingJson save)
         {
-            Value = save.value;
+            _value = save.value;
             Volume = save.value;
             IsOn = save.isOn;
 
@@ -105,11 +124,21 @@ namespace Audio
         
         public void SetupDefault()
         {
-            Value = defaultValue;
+            _value = defaultValue;
             Volume = defaultValue;
             IsOn = defaultIsOn;
 
             IsInitialized = true;
+        }
+
+        public AudioSettingJson GetJson()
+        {
+            return new AudioSettingJson() 
+            {
+                isOn = _isOn,
+                value = _value,
+                key = Key
+            };
         }
     }
     

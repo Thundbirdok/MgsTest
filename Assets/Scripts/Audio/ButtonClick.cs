@@ -18,19 +18,10 @@ namespace Audio
         [SerializeField]
         private Button button; 
         
-        private void OnEnable()
-        {
-            button.onClick.AddListener(Click);
-        }
+        private void OnEnable() => button.onClick.AddListener(Click);
 
-        private void OnDisable()
-        {
-            button.onClick.RemoveListener(Click);
-        }
+        private void OnDisable() => button.onClick.RemoveListener(Click);
 
-        private void Click()
-        {
-            clickSource.PlayOneShot(clickClip, setting.Volume);
-        }
+        private void Click() => clickSource.PlayOneShot(clickClip, setting.Volume);
     }
 }

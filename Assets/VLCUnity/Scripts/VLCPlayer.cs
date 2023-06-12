@@ -29,14 +29,9 @@ public class VLCPlayer : MonoBehaviour
 
 
 	public string path => videoStreamAddressSetting.Address; //Can be a web path or a local path
-	
-	[SerializeField]
-	private VideoStreamAddressSetting videoStreamAddressSetting;
 
-	[SerializeField]
-	private AudioSetting[] mutedOnPlayAudioSettings;
-	
 	public bool flipTextureX = false; //No particular reason you'd need this but it is sometimes useful
+
 	public bool flipTextureY = true; //Set to false on Android, to true on Windows
 
 	public bool automaticallyFlipOnAndroid = true; //Automatically invert Y on Android
@@ -45,8 +40,14 @@ public class VLCPlayer : MonoBehaviour
 
 	public bool logToConsole = false; //Log function calls and LibVLC logs to Unity console
 
+	[SerializeField]
+	private VideoStreamAddressSetting videoStreamAddressSetting;
+
+	[SerializeField]
+	private AudioSetting[] mutedOnPlayAudioSettings;
+
 	private bool _isStreamStarted;
-	
+
 	//Unity Awake, OnDestroy, and Update functions
 	#region unity
 	void Awake()
@@ -147,7 +148,7 @@ public class VLCPlayer : MonoBehaviour
 
 		foreach (var setting in mutedOnPlayAudioSettings)
 		{
-			setting.IsOn = false;
+			setting.IsMuted = true;
 		}
 
 		_isStreamStarted = true;

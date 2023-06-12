@@ -27,9 +27,6 @@ namespace Audio
             audioSetting.OnInitialized -= SetVolume;
         }
 
-        private void SetVolume()
-        {
-            musicAudioSource.volume = audioSetting.Volume;
-        }
+        private void SetVolume() => musicAudioSource.volume = audioSetting.Volume;
     }
 }

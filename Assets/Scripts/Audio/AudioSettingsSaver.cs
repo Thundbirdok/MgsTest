@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Audio
 {
+    using System.Linq;
     using Newtonsoft.Json;
 
     public class AudioSettingsSaver : MonoBehaviour
@@ -15,14 +16,17 @@ namespace Audio
 
         private string _filePath;
 
+        private void Awake()
+        {
+            _filePath = Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);
+        }
+
         private void OnEnable() => Load();
 
         private void OnDisable() => Save();
 
         private void Load()
         {
-            _filePath = Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);
-
             var saves = GetSettingsSaves();
 
             SetupSettings(saves);
@@ -30,9 +34,7 @@ namespace Audio
 
         private void Save()
         {
-            var saves = GetSettingsSaves();
-
-            UpdateSaves(ref saves);
+            var saves = GetSaves();
             
             WriteSettingsSaves(saves);
         }
@@ -85,32 +87,13 @@ namespace Audio
             return JsonConvert.DeserializeObject<List<AudioSettingJson>>(json);
         }
         
-        private void UpdateSaves(ref List<AudioSettingJson> saves)
+        private List<AudioSettingJson> GetSaves()
         {
-            foreach (var setting in settings)
-            {
-                var existingSave = saves.Find
-                (
-                    obj => obj.key == setting.Key
-                );
-
-                if (existingSave != null)
-                {
-                    existingSave.value = setting.Value;
-                    existingSave.isOn = setting.IsOn;
-
-                    continue;
-                }
-                
-                var newSave = new AudioSettingJson
-                {
-                    key = setting.Key,
-                    isOn = setting.IsOn,
-                    value = setting.Value
-                };
-
-                saves.Add(newSave);
-            }
+            return settings.Select
+            (
+                setting => setting.GetJson()
+            )
+            .ToList();
         }
     }
 }
