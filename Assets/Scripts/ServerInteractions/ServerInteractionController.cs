@@ -11,27 +11,28 @@ namespace ServerInteractions
         public event Action OnOdometerValueChanged;
         public event Action OnRandomStatusChanged;
 
-        [NonSerialized]
-        private bool _isConnected;
-        public bool IsConnected
+        private ConnectionStatus _status = ConnectionStatus.Disconnected;
+        public ConnectionStatus ConnectionStatus
         {
             get
             {
-                return _isConnected;
+                return _websocket == null ? ConnectionStatus.Disconnected : _status;
             }
 
             private set
             {
-                if (_isConnected == value)
+                if (_status == value && _status != ConnectionStatus.Reconnecting)
                 {
                     return;
                 }
-
-                _isConnected = value;
+                
+                _status = value;
                 
                 OnConnectionStatusChanged?.Invoke();
             }
         }
+
+        public int ReconnectionIteration { get; private set; }
 
         [NonSerialized]
         private float _odometerValue;
@@ -50,9 +51,10 @@ namespace ServerInteractions
                 OnOdometerValueChanged?.Invoke();
             }
         }
-        
+
         [NonSerialized]
         private bool _randomStatus;
+
         public bool RandomStatus
         {
             get
@@ -75,13 +77,13 @@ namespace ServerInteractions
 
         [SerializeField]
         private ServerAddressSetting serverAddress;
-        
+
         [SerializeField]
         private int maxReconnectionIterations = 4;
 
         [SerializeField]
         private float messageDispatchDelay = 1;
-        
+
         [SerializeField]
         private bool isLogToConsole = true;
 
@@ -97,27 +99,12 @@ namespace ServerInteractions
         private WebSocket _websocket;
 
         [NonSerialized]
-        private bool _isInternetReachable;
-        
-        [NonSerialized]
-        private bool _isConnecting;
-        
-        [NonSerialized]
-        private bool _isClosing;
-        
-        [NonSerialized]
-        private bool _isNoConnectionFired;
-
-        [NonSerialized]
-        private int _reconnectionIteration;
-
-        [NonSerialized]
         private float _timer;
 
         private void Start()
         {
             serverAddress.OnUrlUpdate += Initialize;
-
+            
             Initialize();
         }
 
@@ -128,10 +115,8 @@ namespace ServerInteractions
             await Dispose();
         }
 
-        private async void Update()
+        private void Update()
         {
-            await CheckConnection();
-
             _timer += Time.deltaTime;
 
             if (_timer < messageDispatchDelay)
@@ -142,31 +127,6 @@ namespace ServerInteractions
             _timer = 0;
 
             _websocket?.DispatchMessageQueue();
-        }
-
-        private async Task CheckConnection()
-        {
-            if (_isConnecting || _isClosing || _isConnected)
-            {
-                return;
-            }
-
-            if (_isInternetReachable)
-            {
-                return;
-            }
-
-            if (Application.internetReachability == NetworkReachability.NotReachable)
-            {
-                return;
-            }
-
-            _isInternetReachable = true;
-
-            if (_websocket != null)
-            {
-                await Connect();
-            }
         }
 
         private void Initialize()
@@ -183,6 +143,9 @@ namespace ServerInteractions
                 await Dispose();
             }
         
+            ReconnectionIteration = 0;
+            ConnectionStatus = ConnectionStatus.Disconnected;
+            
             _websocket = new WebSocket(serverAddress.Url);
 
             _websocket.OnOpen += OnWebsocketOpen;
@@ -190,26 +153,20 @@ namespace ServerInteractions
             _websocket.OnMessage += OnWebsocketMessage;
             _websocket.OnError += OnWebsocketError;
 
-            _isInternetReachable =
-                Application.internetReachability != NetworkReachability.NotReachable;
-            
-            if (_isInternetReachable == false)
-            {
-                return;
-            }
-            
             await Connect();
         }
 
         private async Task Connect()
         {
-            if (IsConnected || _isConnecting)
+            if (ConnectionStatus is ConnectionStatus.Connected or ConnectionStatus.Connecting)
             {
                 return;
             }
-            
-            _isConnecting = true;
 
+            ConnectionStatus = ConnectionStatus != ConnectionStatus.Reconnecting 
+                ? ConnectionStatus.Connecting 
+                : ConnectionStatus.Reconnecting;
+            
             await _websocket.Connect();
         }
 
@@ -227,11 +184,13 @@ namespace ServerInteractions
 
         private async Task Disconnect()
         {
-            if (_websocket is not { State: WebSocketState.Open })
+            if (ConnectionStatus is ConnectionStatus.Disconnected or ConnectionStatus.Disconnected)
             {
                 return;
             }
 
+            ConnectionStatus = ConnectionStatus.Disconnecting;
+            
             await _websocket.Close();
         }
 
@@ -289,29 +248,6 @@ namespace ServerInteractions
             }
         }
 
-        private void OnWebsocketClose(WebSocketCloseCode code)
-        {
-            if (isLogToConsole)
-            {
-                Debug.Log("WebSocket closed with code: " + code);
-            }
-            
-            IsConnected = false;
-            _isConnecting = false;
-
-            if (_isClosing)
-            {
-                return;
-            }
-            
-            HandleConnectionLoss();
-        }
-
-        private void OnWebsocketError(string errorMsg)
-        {
-            Debug.LogError("WebSocket error: " + errorMsg);
-        }
-
         private void OnWebsocketMessage(byte[] msg)
         {
             var message = System.Text.Encoding.UTF8.GetString(msg);
@@ -324,12 +260,33 @@ namespace ServerInteractions
             ProcessMessage(message);
         }
 
+        private void OnWebsocketClose(WebSocketCloseCode code)
+        {
+            if (isLogToConsole)
+            {
+                Debug.Log("WebSocket closed with code: " + code);
+            }
+
+            if (ConnectionStatus == ConnectionStatus.Disconnecting)
+            {
+                ConnectionStatus = ConnectionStatus.Disconnected;
+                
+                return;
+            }
+            
+            HandleConnectionLoss();
+        }
+
+        private void OnWebsocketError(string errorMsg)
+        {
+            Debug.LogError("WebSocket error: " + errorMsg);
+        }
+
         private void OnWebsocketOpen()
         {
-            _reconnectionIteration = 0;
-            _isNoConnectionFired = false;
+            ReconnectionIteration = 0;
 
-            IsConnected = true;
+            ConnectionStatus = ConnectionStatus.Connected;
             
             if (isLogToConsole)
             {
@@ -339,27 +296,13 @@ namespace ServerInteractions
             SendRequest(REQUEST_GET_CURRENT_ODOMETER_OPERATION_NAME);
             SendRequest(REQUEST_GET_RANDOM_STATUS_OPERATION_NAME);
         }
-        
+
         private async void HandleConnectionLoss()
         {
-            if (_isNoConnectionFired == false)
-            {
-                _isNoConnectionFired = true;
-                
-                OnConnectionStatusChanged?.Invoke();
-            }
+            ConnectionStatus = ConnectionStatus.Reconnecting;
 
-            if (_reconnectionIteration > maxReconnectionIterations)
-            {
-                if (isLogToConsole)
-                {
-                    Debug.Log("Connection failed. No more reconnections");
-                }
-                
-                return;
-            }
-            
-            var delay = (int)Mathf.Pow(2, _reconnectionIteration) * 1000;
+            var iteration = Mathf.Clamp(ReconnectionIteration, 0, maxReconnectionIterations);
+            var delay = (int)Mathf.Pow(2, iteration) * 1000;
             
             if (isLogToConsole)
             {
@@ -368,8 +311,8 @@ namespace ServerInteractions
             
             await Task.Delay(delay);
             
-            ++_reconnectionIteration;
-
+            ++ReconnectionIteration;
+            
             await Connect();
         }
 

@@ -11,16 +11,13 @@ namespace Ui
         private ServerInteractionController serverInteractionController;
 
         [SerializeField]
-        private Toggle connection;
+        private ConnectionStatusView connectionStatusView;
         
         [SerializeField]
         private Toggle randomStatus;
 
         [SerializeField]
         private OdometerView odometer;
-
-        [SerializeField]
-        private NoConnectionPopup noConnectionPopup;
 
         [SerializeField]
         private Button menuButton;
@@ -31,16 +28,16 @@ namespace Ui
         private void Awake()
         {
             odometer.Construct(serverInteractionController);
+            connectionStatusView.Construct(serverInteractionController);
         }
 
         private void OnEnable()
         {
-            connection.isOn = serverInteractionController.IsConnected;
             randomStatus.isOn = serverInteractionController.RandomStatus;
 
             odometer.Enable();
+            connectionStatusView.Enable();
             
-            serverInteractionController.OnConnectionStatusChanged += ConnectionStatusChanged;
             serverInteractionController.OnRandomStatusChanged += RandomStatusChanged;
 
             menuButton.onClick.AddListener(menu.Open);
@@ -50,21 +47,11 @@ namespace Ui
         private void OnDisable()
         {
             odometer.Disable();
+            connectionStatusView.Disable();
             
-            serverInteractionController.OnConnectionStatusChanged -= ConnectionStatusChanged;
             serverInteractionController.OnRandomStatusChanged -= RandomStatusChanged;
 
             menuButton.onClick.RemoveListener(menu.Open);
-        }
-
-        private void ConnectionStatusChanged()
-        {
-            connection.isOn = serverInteractionController.IsConnected;
-
-            if (serverInteractionController.IsConnected == false)
-            {
-                noConnectionPopup.Open();
-            }
         }
 
         private void RandomStatusChanged() => randomStatus.isOn = serverInteractionController.RandomStatus;
