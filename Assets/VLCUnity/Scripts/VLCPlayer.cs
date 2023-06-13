@@ -28,7 +28,7 @@ public class VLCPlayer : MonoBehaviour
 	public RenderTexture texture = null; //We copy it into this texture which we actually use in unity.
 
 
-	public string path => videoStreamAddressSetting.Address; //Can be a web path or a local path
+	public string path => videoStreamAddressSetting.Url; //Can be a web path or a local path
 
 	public bool flipTextureX = false; //No particular reason you'd need this but it is sometimes useful
 
