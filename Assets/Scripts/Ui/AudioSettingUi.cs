@@ -22,10 +22,7 @@ namespace Ui
             Subscribe();
         }
 
-        private void OnDisable()
-        {
-            Unsubscribe();
-        }
+        private void OnDisable() => Unsubscribe();
 
         private void CallSetup()
         {
@@ -73,7 +70,7 @@ namespace Ui
         {
             setting.Volume = value;
             
-            toggle.isOn = setting.Volume > 0;
+            toggle.isOn = value > 0;
         }
     }
 }
