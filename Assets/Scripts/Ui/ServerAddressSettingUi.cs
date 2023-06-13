@@ -1,8 +1,9 @@
-using UnityEngine;
-
-namespace ServerInteractions
+namespace Ui
 {
+    using ServerInteractions;
     using TMPro;
+    using UnityEngine;
+    using UnityEngine.UI;
 
     public class ServerAddressSettingUi : MonoBehaviour
     {
@@ -14,12 +15,14 @@ namespace ServerInteractions
         
         [SerializeField]
         private TMP_InputField portField;
+
+        [SerializeField]
+        private Button apply;
         
         private void OnEnable()
         {
-            addressField.onEndEdit.AddListener(OnEndEditAddress);
-            portField.onEndEdit.AddListener(OnEndEditPort);
-            
+            apply.onClick.AddListener(Apply);
+
             if (setting.IsInitialized)
             {
                 UpdateFields();
@@ -30,11 +33,7 @@ namespace ServerInteractions
             setting.OnInitialized += UpdateFields;
         }
 
-        private void OnDisable()
-        {
-            addressField.onEndEdit.RemoveListener(OnEndEditAddress);
-            portField.onEndEdit.RemoveListener(OnEndEditPort);
-        }
+        private void OnDisable() => apply.onClick.RemoveListener(Apply);
 
         private void UpdateFields()
         {
@@ -44,14 +43,10 @@ namespace ServerInteractions
             portField.text = setting.Port;
         }
 
-        private void OnEndEditAddress(string text)
+        private void Apply()
         {
-            setting.Address = text;
-        }
-        
-        private void OnEndEditPort(string text)
-        {
-            setting.Port = text;
+            setting.Address = addressField.text;
+            setting.Port = portField.text;
         }
     }
 }

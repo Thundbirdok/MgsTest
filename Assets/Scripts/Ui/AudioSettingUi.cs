@@ -1,9 +1,9 @@
-using UnityEngine;
-
-namespace Audio
+namespace Ui
 {
+    using Audio;
+    using UnityEngine;
     using UnityEngine.UI;
-    
+
     public class AudioSettingUi : MonoBehaviour
     {
         [SerializeField]

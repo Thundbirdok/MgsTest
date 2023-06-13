@@ -2,13 +2,15 @@ using UnityEngine;
 
 namespace ServerInteractions
 {
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Newtonsoft.Json;
 
     public class ServerAddressSettingSaver : MonoBehaviour
     {
         [SerializeField]
-        private ServerAddressSetting setting;
+        private ServerAddressSetting[] settings;
         
         private const string SAVE_FILE_NAME = "config.txt";
 
@@ -24,68 +26,73 @@ namespace ServerInteractions
 
             var save = GetSettingsSaves();
 
-            SetupSetting(save);
+            SetupSettings(save);
         }
 
         private void Save()
         {
             SetPath();
             
-            var save = GetSave();
+            var save = GetSaves();
             
             WriteSettingsSaves(save);
         }
 
-        private void SetupSetting(ServerAddressSettingJson save)
+        private void SetupSettings(List<ServerAddressSettingJson> saves)
         {
-            if (save != null)
+            foreach (var setting in settings)
             {
-                setting.Setup(save);
-
-                return;
+                var save = saves.Find(obj => obj.key == setting.Key);
+                
+                if (save != null)
+                {
+                    setting.Setup(save);
+                    
+                    continue;
+                }
+                
+                setting.SetupDefault();
             }
-
-            setting.SetupDefault();
         }
 
-        private void WriteSettingsSaves(ServerAddressSettingJson save)
-        {
-            var json = JsonConvert.SerializeObject(save);
-
-            if (File.Exists(_filePath) == false)
-            {
-                File.Create(_filePath);
-            }
-
-            File.WriteAllText(_filePath, json);
-        }
-
-        private ServerAddressSettingJson GetSettingsSaves()
+        private List<ServerAddressSettingJson> GetSettingsSaves()
         {
             if (File.Exists(_filePath) == false)
             {
                 File.Create(_filePath);
 
-                return null;
+                return new List<ServerAddressSettingJson>();
             }
             
             var json = File.ReadAllText(_filePath);
 
-            if (string.IsNullOrEmpty(json) || json == "{}")
+            if (string.IsNullOrEmpty(json) || json[0] == '{')
             {
-                return null;
+                return new List<ServerAddressSettingJson>();
             }
             
-            return JsonConvert.DeserializeObject<ServerAddressSettingJson>(json);
+            return JsonConvert.DeserializeObject<List<ServerAddressSettingJson>>(json);
+        }
+        
+        private void WriteSettingsSaves(List<ServerAddressSettingJson> saves)
+        {
+            var updatedJson = JsonConvert.SerializeObject(saves);
+
+            if (File.Exists(_filePath) == false)
+            {
+                File.Create(_filePath);
+            }
+
+            File.WriteAllText(_filePath, updatedJson);
         }
 
-        private ServerAddressSettingJson GetSave()
+        private List<ServerAddressSettingJson> GetSaves()
         {
-            return new ServerAddressSettingJson
-            {
-                address = setting.Address,
-                port = setting.Port
-            };
+            return settings.Select
+            (
+                setting => setting.GetJson()
+            )
+            .ToList();
         }
 
         private void SetPath()

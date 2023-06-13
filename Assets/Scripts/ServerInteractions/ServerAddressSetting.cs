@@ -32,6 +32,7 @@ namespace ServerInteractions
         public string Url { get; private set; }
 
         private string _address;
+
         public string Address
         {
             get
@@ -60,6 +61,7 @@ namespace ServerInteractions
         }
 
         private string _port;
+
         public string Port
         {
             get
@@ -86,9 +88,15 @@ namespace ServerInteractions
                 OnUrlUpdate?.Invoke();
             }
         }
+
+        [field: SerializeField]
+        public string Key { get; private set; }
+
+        [SerializeField]
+        private string format = "ws://{0}:{1}/ws";
         
         [SerializeField]
-        private string defaultServerAddress = "ws://185.246.65.199:{0}/ws";
+        private string defaultServerAddress = "185.246.65.199";
         
         [SerializeField]
         private string defaultServerPort = "9090";
@@ -115,20 +123,23 @@ namespace ServerInteractions
             OnUrlUpdate?.Invoke();
         }
 
-        private string GetUrl()
+        public ServerAddressSettingJson GetJson()
         {
-            if (Address.Contains("{0}"))
+            return new ServerAddressSettingJson 
             {
-                return string.Format(Address, Port);
-            }
-            
-            return Address + ":" + Port;
+                key = Key,
+                address = _address,
+                port = _port
+            };
         }
+        
+        private string GetUrl() => string.Format(format, Address, Port);
     }
 
     [Serializable]
     public class ServerAddressSettingJson
     {
+        public string key;
         public string address;
         public string port;
     }

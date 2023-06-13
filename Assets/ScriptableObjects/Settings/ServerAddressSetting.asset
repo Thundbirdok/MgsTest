@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dccdce1e60358a4d9e06a9aea7db48a, type: 3}
   m_Name: ServerAddressSetting
   m_EditorClassIdentifier: 
-  defaultServerAddress: ws://185.246.65.199:{0}/ws
+  <Key>k__BackingField: Server
+  format: ws://{0}:{1}/ws
+  defaultServerAddress: 185.246.65.199
   defaultServerPort: 9090

@@ -41,7 +41,7 @@ public class VLCPlayer : MonoBehaviour
 	public bool logToConsole = false; //Log function calls and LibVLC logs to Unity console
 
 	[SerializeField]
-	private VideoStreamAddressSetting videoStreamAddressSetting;
+	private ServerAddressSetting videoStreamAddressSetting;
 
 	[SerializeField]
 	private AudioSetting[] mutedOnPlayAudioSettings;
@@ -66,7 +66,7 @@ public class VLCPlayer : MonoBehaviour
 		//Setup Media Player
 		CreateMediaPlayer();
 
-		videoStreamAddressSetting.OnAddressChanged += CheckIsNeedToPlay;
+		videoStreamAddressSetting.OnUrlUpdate += CheckIsNeedToPlay;
 		
 		if (videoStreamAddressSetting.IsInitialized)
 		{
@@ -76,7 +76,7 @@ public class VLCPlayer : MonoBehaviour
 
 	void OnDestroy()
 	{
-		videoStreamAddressSetting.OnAddressChanged -= CheckIsNeedToPlay;
+		videoStreamAddressSetting.OnUrlUpdate -= CheckIsNeedToPlay;
 		
 		//Dispose of mediaPlayer, or it will stay in memory and keep playing audio
 		DestroyMediaPlayer();

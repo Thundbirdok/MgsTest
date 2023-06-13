@@ -1,1 +1,1 @@
-{"address":"ws://185.246.65.199:{0}/ws","port":"9090"}
+[{"key":"Server","address":"185.246.65.199","port":"9090"},{"key":"VideoStream","address":"192.168.100.2","port":"8554"}]
