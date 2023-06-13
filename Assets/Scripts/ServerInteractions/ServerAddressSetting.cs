@@ -3,9 +3,10 @@ using UnityEngine;
 namespace ServerInteractions
 {
     using System;
+    using Settings;
 
     [CreateAssetMenu(fileName = "ServerAddressSetting", menuName = "Settings/ServerAddressSetting")]
-    public class ServerAddressSetting : ScriptableObject
+    public class ServerAddressSetting : Setting<ServerAddressSettingJson>
     {
         public event Action OnInitialized;
         public event Action OnUrlUpdate;
@@ -89,9 +90,6 @@ namespace ServerInteractions
             }
         }
 
-        [field: SerializeField]
-        public string Key { get; private set; }
-
         [SerializeField]
         private string format = "ws://{0}:{1}/ws";
         
@@ -101,7 +99,7 @@ namespace ServerInteractions
         [SerializeField]
         private string defaultServerPort = "9090";
 
-        public void Setup(ServerAddressSettingJson address)
+        public override void Setup(ServerAddressSettingJson address)
         {
             _address = address.address;
             _port = address.port;
@@ -112,7 +110,7 @@ namespace ServerInteractions
             OnUrlUpdate?.Invoke();
         }
 
-        public void SetupDefault()
+        public override void SetupDefault()
         {
             _address = defaultServerAddress;
             _port = defaultServerPort;
@@ -123,7 +121,7 @@ namespace ServerInteractions
             OnUrlUpdate?.Invoke();
         }
 
-        public ServerAddressSettingJson GetJson()
+        public override ServerAddressSettingJson GetJson()
         {
             return new ServerAddressSettingJson 
             {
@@ -137,9 +135,8 @@ namespace ServerInteractions
     }
 
     [Serializable]
-    public class ServerAddressSettingJson
+    public class ServerAddressSettingJson : SettingJson
     {
-        public string key;
         public string address;
         public string port;
     }

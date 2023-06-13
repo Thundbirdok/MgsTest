@@ -1,10 +1,11 @@
 namespace Audio
 {
     using System;
+    using Settings;
     using UnityEngine;
 
     [CreateAssetMenu(fileName = "AudioSetting", menuName = "Settings/AudioSetting")]
-    public class AudioSetting : ScriptableObject
+    public class AudioSetting : Setting<AudioSettingJson>
     {
         public event Action OnInitialized;
         public event Action OnVolumeChanged;
@@ -104,16 +105,13 @@ namespace Audio
             }
         }
 
-        [field: SerializeField]
-        public string Key { get; private set; }
-
         [SerializeField]
         private float defaultValue = 0.5f;
 
         [SerializeField]
         private bool defaultIsOn = true;
 
-        public void Setup(AudioSettingJson save)
+        public override void Setup(AudioSettingJson save)
         {
             _value = save.value;
             Volume = save.value;
@@ -122,7 +120,7 @@ namespace Audio
             IsInitialized = true;
         }
         
-        public void SetupDefault()
+        public override void SetupDefault()
         {
             _value = defaultValue;
             Volume = defaultValue;
@@ -131,7 +129,7 @@ namespace Audio
             IsInitialized = true;
         }
 
-        public AudioSettingJson GetJson()
+        public override AudioSettingJson GetJson()
         {
             return new AudioSettingJson() 
             {
@@ -143,10 +141,9 @@ namespace Audio
     }
     
     [Serializable]
-    public class AudioSettingJson
+    public class AudioSettingJson : SettingJson
     {
         public bool isOn;
         public float value;
-        public string key;
     }
 }

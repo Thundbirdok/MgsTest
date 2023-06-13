@@ -2394,6 +2394,7 @@ MonoBehaviour:
   settings:
   - {fileID: 11400000, guid: 52021924d219c3840926c3fe6a278be3, type: 2}
   - {fileID: 11400000, guid: 40cd0245384a412439a5cc6318131fb6, type: 2}
+  saveFileName: AudioSettings.json
 --- !u!4 &563010775
 Transform:
   m_ObjectHideFlags: 0
@@ -7926,6 +7927,7 @@ MonoBehaviour:
   settings:
   - {fileID: 11400000, guid: 3eeb12f026bca164b87784b5ddf6e80f, type: 2}
   - {fileID: 11400000, guid: 8d096c526750f1341b3765faab97d9d4, type: 2}
+  saveFileName: config.txt
 --- !u!1 &1938034460
 GameObject:
   m_ObjectHideFlags: 0
